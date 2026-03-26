@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Jornada da Redenção</title>
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- CSS EXTERNO -->
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="bg-slate-900 text-white flex items-center justify-center min-h-screen">
+
+<div class="w-full max-w-xl p-4">
+
+  <!-- LOGIN -->
+  <div id="login" class="text-center space-y-4">
+    <h1 class="text-3xl font-bold text-blue-400">Jornada da Redenção</h1>
+
+    <input id="nome" placeholder="Digite seu nome"
+      class="w-full p-3 rounded bg-slate-800">
+
+    <button onclick="start()" class="btnPrimario">
+      Começar
+    </button>
+  </div>
+
+  <!-- GAME -->
+  <div id="game" class="hidden"></div>
+
+  <!-- FINAL -->
+  <div id="final" class="hidden text-center space-y-4">
+    <h2 class="text-2xl">Resultado</h2>
+    <p id="resultado"></p>
+    <button onclick="verRanking()" class="btnPrimario">Ranking</button>
+  </div>
+
+  <!-- RANKING -->
+  <div id="ranking" class="hidden text-center space-y-2">
+    <h2 class="text-xl">🏆 Ranking</h2>
+    <ul id="listaRanking"></ul>
+    <button onclick="location.reload()" class="btnPrimario">
+      Jogar novamente
+    </button>
+  </div>
+
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
