@@ -1,0 +1,177 @@
+/* ================= FIX ERRO ================= */
+/* removido }} inválido no topo */
+
+/* ================= ANIMAÇÕES ================= */
+
+.fade-in {
+  animation: fadeIn 0.4s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px) scale(0.98);}
+  to { opacity: 1; transform: translateY(0) scale(1);}
+}
+
+.feedback {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 12px 20px;
+  border-radius: 12px;
+  font-weight: bold;
+  animation: pop 0.3s ease;
+  color: white;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+  z-index: 999;
+}
+
+@keyframes pop {
+  from { transform: scale(0.5); opacity: 0;}
+  to { transform: scale(1); opacity: 1;}
+}
+
+/* ================= INPUT PADRÃO ================= */
+
+.input {
+  width: 100%;
+  padding: 12px;
+  border-radius: 12px;
+  background: #334155;
+  color: white;
+  outline: none;
+  border: none;
+  transition: 0.2s;
+}
+
+.input:focus {
+  box-shadow: 0 0 0 2px #3b82f6;
+}
+
+/* ================= BOTÕES ================= */
+
+.btn {
+  width: 100%;
+  background: #475569;
+  padding: 14px;
+  border-radius: 12px;
+  font-weight: bold;
+  transition: all 0.2s ease;
+  color: white;
+  cursor: pointer;
+  border: none;
+}
+
+.btn:hover {
+  transform: translateY(-2px) scale(1.02);
+  background: #3b82f6;
+}
+
+/* botão principal (mantém compatibilidade com seu código antigo) */
+.btnPrimario {
+  width: 100%;
+  background: #3b82f6;
+  padding: 12px;
+  border-radius: 12px;
+  font-weight: bold;
+  transition: 0.2s;
+  color: white;
+  border: none;
+}
+
+.btnPrimario:hover {
+  transform: scale(1.05);
+  background: #2563eb;
+}
+
+/* variantes */
+.btn-success {
+  background: #22c55e;
+}
+
+.btn-success:hover {
+  background: #16a34a;
+}
+
+.btn-error {
+  background: #ef4444;
+}
+
+.btn-error:hover {
+  background: #dc2626;
+}
+
+/* ================= CARD (FLASHCARD REAL) ================= */
+
+.card {
+  perspective: 1000px;
+  width: 100%;
+  height: 120px;
+}
+
+.card-inner {
+  transition: transform 0.6s;
+  transform-style: preserve-3d;
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.card.flip .card-inner {
+  transform: rotateY(180deg);
+}
+
+.card-front,
+.card-back {
+  backface-visibility: hidden;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 12px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 20px;
+  font-weight: bold;
+
+  padding: 10px;
+}
+
+/* frente */
+.card-front {
+  background: linear-gradient(135deg, #3b82f6, #6366f1);
+}
+
+/* verso */
+.card-back {
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  transform: rotateY(180deg);
+}
+
+/* ================= GRID / ELEMENTOS ================= */
+
+.parItem {
+  background: #475569;
+  padding: 12px;
+  border-radius: 12px;
+  text-align: center;
+  transition: 0.2s;
+  cursor: pointer;
+}
+
+.parItem:hover {
+  background: #3b82f6;
+}
+
+/* ================= BONUS (UX MELHOR) ================= */
+
+/* leve clique */
+button:active {
+  transform: scale(0.96);
+}
+
+/* scroll suave */
+html {
+  scroll-behavior: smooth;
+}
