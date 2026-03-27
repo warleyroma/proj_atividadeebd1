@@ -2,28 +2,28 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>Jornada da Redenção</title>
-
-  <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
-
-  <!-- CSS EXTERNO -->
   <link rel="stylesheet" href="style.css">
 </head>
+<body class="bg-slate-900 text-white flex items-center justify-center min-h-screen min-h-dvh">
 
-<body class="bg-slate-900 text-white flex items-center justify-center min-h-screen">
-
-<div class="w-full max-w-xl p-4">
+<div class="w-full max-w-xl p-3 sm:p-4" id="root">
 
   <!-- LOGIN -->
   <div id="login" class="text-center space-y-4">
-    <h1 class="text-3xl font-bold text-blue-400">Jornada da Redenção</h1>
-
+    <div class="mb-6">
+      <h1 class="text-2xl sm:text-3xl font-bold text-blue-400 mt-2">Jornada da Redenção</h1>
+      <p class="text-slate-400 text-sm mt-1">Quiz bíblico interativo - Testes seus conhecimentos!</p>
+    </div>
     <input id="nome" placeholder="Digite seu nome"
-      class="w-full p-3 rounded bg-slate-800">
-
+      class="input" autocomplete="off" autocorrect="off" spellcheck="false">
     <button onclick="start()" class="btnPrimario">
-      Começar
+      Começar Jornada
     </button>
   </div>
 
@@ -31,18 +31,20 @@
   <div id="game" class="hidden"></div>
 
   <!-- FINAL -->
-  <div id="final" class="hidden text-center space-y-4">
-    <h2 class="text-2xl">Resultado</h2>
-    <p id="resultado"></p>
-    <button onclick="verRanking()" class="btnPrimario">Ranking</button>
+  <div id="final" class="hidden text-center space-y-4 p-4">
+    <div style="font-size:3rem">🎉</div>
+    <h2 class="text-2xl font-bold text-blue-400">Parabéns!</h2>
+    <p id="resultado" class="text-lg font-semibold text-yellow-400"></p>
+    <button onclick="verRanking()" class="btnPrimario">🏆 Ver Ranking</button>
+    <button onclick="location.reload()" class="btn mt-2" style="background:#475569">🔄 Jogar Novamente</button>
   </div>
 
   <!-- RANKING -->
-  <div id="ranking" class="hidden text-center space-y-2">
-    <h2 class="text-xl">🏆 Ranking</h2>
-    <ul id="listaRanking"></ul>
-    <button onclick="location.reload()" class="btnPrimario">
-      Jogar novamente
+  <div id="ranking" class="hidden text-center space-y-3 p-2">
+    <h2 class="text-xl font-bold">🏆 Ranking</h2>
+    <ul id="listaRanking" class="space-y-2 text-left"></ul>
+    <button onclick="location.reload()" class="btnPrimario mt-2">
+      🔄 Jogar novamente
     </button>
   </div>
 
