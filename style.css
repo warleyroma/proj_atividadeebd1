@@ -292,35 +292,7 @@ body {
   }
 }
 
-/* ================================================================
-   PALAVRAS CRUZADAS — GRADE RESPONSIVA
-================================================================ */
-#pc-table {
-  border-collapse: collapse;
-  margin: 0 auto;
-}
-
-#pc-table td {
-  width: 28px;
-  height: 28px;
-  font-size: 0.8rem;
-}
-
-@media (max-width: 400px) {
-  #pc-table td {
-    width: 24px;
-    height: 24px;
-    font-size: 0.7rem;
-  }
-}
-
-@media (max-width: 340px) {
-  #pc-table td {
-    width: 20px;
-    height: 20px;
-    font-size: 0.6rem;
-  }
-}
+/* Palavras cruzadas: estilos movidos para o bloco pc-grid no fim do arquivo */
 
 /* ================================================================
    MEMÓRIA — GRID
@@ -490,4 +462,80 @@ body {
 @media (max-width: 360px) {
   .quiz-grid { gap: 7px; }
   .quiz-grid .btn { padding: 10px 8px; font-size: 0.82rem; }
+}
+
+/* ================================================================
+   PALAVRAS CRUZADAS — GRADE 100% DA DIV (sem scroll horizontal)
+================================================================ */
+
+/* Wrapper ocupa toda a largura do container pai */
+.pc-grid-wrap {
+  width: 100%;
+  overflow: hidden; /* sem scroll */
+}
+
+/* Tabela estica para preencher o wrapper */
+.pc-table {
+  border-collapse: collapse;
+  width: 100%;
+  table-layout: fixed; /* todas as colunas dividem o espaço igualmente */
+}
+
+/* Células base */
+.pc-cell {
+  /* aspect-ratio faz a célula ser quadrada proporcionalmente */
+  aspect-ratio: 1 / 1;
+  position: relative;
+  text-align: center;
+  vertical-align: middle;
+  font-weight: bold;
+  color: white;
+  font-size: clamp(0.6rem, 3vw, 1rem);
+  user-select: none;
+  /* Padding zero — o conteúdo vai ocupar a célula inteira */
+  padding: 0;
+  line-height: 1;
+}
+
+/* Célula preta (fora da grade) */
+.pc-cell-vazia {
+  background: #0f172a;
+  border: none;
+}
+
+/* Célula editável (padrão) */
+.pc-cell-edit {
+  background: #1e293b;
+  border: 1px solid #334155;
+  cursor: pointer;
+}
+.pc-cell-edit:active { background: #2d3f57; }
+
+/* Célula ativa (cursor atual) */
+.pc-cell-ativa {
+  background: #1e40af !important;
+  border-color: #3b82f6 !important;
+}
+
+/* Célula da palavra selecionada (highlight da palavra inteira) */
+.pc-cell-word {
+  background: #1e3a5f !important;
+}
+
+/* Acertou */
+.pc-cell-certa  { background: #14532d !important; }
+
+/* Errou */
+.pc-cell-errada { background: #7f1d1d !important; }
+
+/* Número do índice da palavra (canto superior esquerdo da célula) */
+.pc-num {
+  position: absolute;
+  top: 1px;
+  left: 1px;
+  font-size: clamp(5px, 1.5vw, 9px);
+  color: #94a3b8;
+  line-height: 1;
+  font-weight: normal;
+  pointer-events: none;
 }
