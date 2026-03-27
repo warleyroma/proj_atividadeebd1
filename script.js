@@ -1052,163 +1052,310 @@ function _atualizarCartaUI(id) {
 }
 
 /* =====================================================================
-   JOGO: PALAVRAS CRUZADAS
+   JOGO: PALAVRAS CRUZADAS — GERADOR DINÂMICO
+   Gera um layout diferente a cada partida usando o banco de palavras.
 ===================================================================== */
-const _PC_PALAVRAS = [
-  { id: 1,  palavra: "JESUS",    dir: "H", lin: 0,  col: 0, dica: "Filho de Deus"          },
-  { id: 2,  palavra: "GRACA",    dir: "H", lin: 2,  col: 0, dica: "Favor imerecido"         },
-  { id: 3,  palavra: "SALVACAO", dir: "H", lin: 4,  col: 0, dica: "Dom de Deus ao homem"    },
-  { id: 4,  palavra: "AMOR",     dir: "H", lin: 6,  col: 0, dica: "Sentimento divino"        },
-  { id: 5,  palavra: "VERDADE",  dir: "H", lin: 8,  col: 0, dica: "O que liberta"            },
-  { id: 6,  palavra: "REINO",    dir: "H", lin: 10, col: 0, dica: "Lugar de Deus"            },
-  { id: 7,  palavra: "DEUS",     dir: "V", lin: 0,  col: 0, dica: "Criador de tudo"          },
-  { id: 8,  palavra: "GRACA",    dir: "V", lin: 0,  col: 4, dica: "Poder e favor"            },
-  { id: 9,  palavra: "ALMA",     dir: "V", lin: 0,  col: 6, dica: "Parte espiritual"         },
-  { id: 10, palavra: "CRUZ",     dir: "V", lin: 0,  col: 8, dica: "Instrumento de redenção"  },
-  { id: 11, palavra: "PECADO",   dir: "V", lin: 4,  col: 2, dica: "Transgressão da Lei"      }
+
+// Banco completo de palavras (sem acentos para cruzamento limpo)
+const _PC_BANCO = [
+  { palavra: "JESUS",        dica: "Filho de Deus"              },
+  { palavra: "DEUS",         dica: "Criador de tudo"            },
+  { palavra: "FE",           dica: "Meio de salvação"           },
+  { palavra: "GRACA",        dica: "Favor imerecido"            },
+  { palavra: "PECADO",       dica: "Transgressão da Lei"        },
+  { palavra: "SALVACAO",     dica: "Dom de Deus ao homem"       },
+  { palavra: "AMOR",         dica: "Sentimento divino"          },
+  { palavra: "VERDADE",      dica: "O que liberta"              },
+  { palavra: "REINO",        dica: "Lugar de Deus"              },
+  { palavra: "CRUZ",         dica: "Instrumento de redenção"    },
+  { palavra: "ALMA",         dica: "Parte espiritual do homem"  },
+  { palavra: "VIDA",         dica: "Dom que Cristo oferece"     },
+  { palavra: "LUZ",          dica: "Cristo é a nossa ___"       },
+  { palavra: "PAZ",          dica: "Fruto do Espírito"          },
+  { palavra: "LEI",          dica: "Mandamentos de Deus"        },
+  { palavra: "ORACAO",       dica: "Comunicação com Deus"       },
+  { palavra: "PROFETA",      dica: "Porta-voz de Deus"          },
+  { palavra: "BATISMO",      dica: "Rito de iniciação cristã"   },
+  { palavra: "PARAISO",      dica: "Morada eterna dos salvos"   },
+  { palavra: "APOSTOLO",     dica: "Enviado de Cristo"          }
 ];
 
-const _PC_LINHAS  = 12;
-const _PC_COLUNAS = 9;
+// Estado
+let _pcPalavrasGeradas = [];
+let _pcLinhas          = 0;
+let _pcColunas         = 0;
+let _pcGrade           = [];
+let _pcRespostas       = {};
+let _pcAtiva           = null;
+let _pcPalavraAtiva    = null;
 
-let _pcGrade        = [];
-let _pcRespostas    = {};
-let _pcAtiva        = null;
-let _pcPalavraAtiva = null;
+/* ------------------------------------------------------------------
+   GERADOR DE GRADE
+------------------------------------------------------------------ */
 
-function _pcConstruirGrade() {
-  _pcGrade = [];
-  for (let l = 0; l < _PC_LINHAS; l++) {
-    _pcGrade[l] = [];
-    for (let c = 0; c < _PC_COLUNAS; c++) {
-      _pcGrade[l][c] = { letra: null, editavel: false, num: null };
+function _pcGerarCruzadinha() {
+  const pool = embaralhar([..._PC_BANCO]);
+  const QTDE = 7 + Math.floor(Math.random() * 3); // 7–9 palavras
+  const escolha = pool.slice(0, QTDE);
+
+  for (let tentativa = 0; tentativa < 40; tentativa++) {
+    const resultado = _pcTentarGerar(embaralhar([...escolha]));
+    if (resultado && resultado.length >= 5) return resultado;
+  }
+  return _pcLayoutFallback();
+}
+
+function _pcTentarGerar(palavras) {
+  const MAX = 22;
+  const tmp = Array.from({ length: MAX }, () => Array(MAX).fill(null));
+
+  const colocadas = [];
+
+  // Primeira palavra: horizontal, centralizada
+  const p0    = palavras[0];
+  const ini0L = Math.floor(MAX / 2);
+  const ini0C = Math.floor((MAX - p0.palavra.length) / 2);
+  _pcEscreverTemp(tmp, p0.palavra, "H", ini0L, ini0C);
+  colocadas.push({ ...p0, id: 1, dir: "H", lin: ini0L, col: ini0C });
+
+  for (let i = 1; i < palavras.length; i++) {
+    const pw  = palavras[i];
+    const pos = _pcEncontrarEncaixe(tmp, pw.palavra, colocadas, MAX);
+    if (pos) {
+      _pcEscreverTemp(tmp, pw.palavra, pos.dir, pos.lin, pos.col);
+      colocadas.push({ ...pw, id: colocadas.length + 1, dir: pos.dir, lin: pos.lin, col: pos.col });
     }
   }
-  _PC_PALAVRAS.forEach(p => {
-    p.palavra.split("").forEach((lt, i) => {
-      const l = p.dir === "H" ? p.lin : p.lin + i;
-      const c = p.dir === "H" ? p.col + i : p.col;
-      if (l < _PC_LINHAS && c < _PC_COLUNAS) {
-        _pcGrade[l][c].letra    = lt;
-        _pcGrade[l][c].editavel = true;
-      }
+
+  if (colocadas.length < 5) return null;
+
+  // Bounding box
+  let minL = MAX, maxL = 0, minC = MAX, maxC = 0;
+  colocadas.forEach(pw => {
+    _pcCellsDePW(pw).forEach(({ l, c }) => {
+      if (l < minL) minL = l;
+      if (l > maxL) maxL = l;
+      if (c < minC) minC = c;
+      if (c > maxC) maxC = c;
     });
-    const fl = p.lin;
-    const fc = p.col;
-    if (!_pcGrade[fl][fc].num) _pcGrade[fl][fc].num = p.id;
   });
 
-  _pcRespostas = {};
-  for (let l = 0; l < _PC_LINHAS; l++) {
-    _pcRespostas[l] = {};
-    for (let c = 0; c < _PC_COLUNAS; c++) {
-      _pcRespostas[l][c] = "";
-    }
+  return colocadas.map(pw => ({ ...pw, lin: pw.lin - minL, col: pw.col - minC }));
+}
+
+function _pcEscreverTemp(tmp, palavra, dir, lin, col) {
+  for (let i = 0; i < palavra.length; i++) {
+    const l = dir === "H" ? lin     : lin + i;
+    const c = dir === "H" ? col + i : col;
+    tmp[l][c] = palavra[i];
   }
 }
 
+function _pcEncontrarEncaixe(tmp, palavra, colocadas, MAX) {
+  const tentativas = embaralhar([...colocadas]);
+  for (const existente of tentativas) {
+    for (const dir of embaralhar(["H", "V"])) {
+      if (dir === existente.dir) continue;
+      for (let ni = 0; ni < palavra.length; ni++) {
+        const letra = palavra[ni];
+        for (let ei = 0; ei < existente.palavra.length; ei++) {
+          if (existente.palavra[ei] !== letra) continue;
+          let lin, col;
+          if (dir === "H") { lin = existente.lin + ei; col = existente.col - ni; }
+          else             { lin = existente.lin - ni; col = existente.col + ei; }
+          if (_pcCabeNaGrade(tmp, palavra, dir, lin, col, MAX) &&
+              _pcSemConflito(tmp, palavra, dir, lin, col, ni, MAX)) {
+            return { dir, lin, col };
+          }
+        }
+      }
+    }
+  }
+  return null;
+}
+
+function _pcCabeNaGrade(tmp, palavra, dir, lin, col, MAX) {
+  if (lin < 0 || col < 0) return false;
+  for (let i = 0; i < palavra.length; i++) {
+    const l = dir === "H" ? lin     : lin + i;
+    const c = dir === "H" ? col + i : col;
+    if (l >= MAX || c >= MAX) return false;
+  }
+  return true;
+}
+
+function _pcSemConflito(tmp, palavra, dir, lin, col, niCruz, MAX) {
+  // Verifica espaço antes/depois
+  const lBef = dir === "H" ? lin             : lin - 1;
+  const cBef = dir === "H" ? col - 1         : col;
+  if (lBef >= 0 && cBef >= 0 && tmp[lBef][cBef] !== null) return false;
+
+  const lAft = dir === "H" ? lin                 : lin + palavra.length;
+  const cAft = dir === "H" ? col + palavra.length : col;
+  if (lAft < MAX && cAft < MAX && tmp[lAft] && tmp[lAft][cAft] !== null) return false;
+
+  for (let i = 0; i < palavra.length; i++) {
+    const l = dir === "H" ? lin     : lin + i;
+    const c = dir === "H" ? col + i : col;
+    const cel = tmp[l][c];
+    if (cel !== null) {
+      if (cel !== palavra[i]) return false;
+      if (i !== niCruz)       return false;
+    } else {
+      // Verifica adjacência paralela (evita palavras "coladas")
+      if (dir === "H") {
+        if (i !== niCruz) {
+          if (l > 0    && tmp[l-1][c] !== null) return false;
+          if (l < MAX-1 && tmp[l+1][c] !== null) return false;
+        }
+      } else {
+        if (i !== niCruz) {
+          if (c > 0    && tmp[l][c-1] !== null) return false;
+          if (c < MAX-1 && tmp[l][c+1] !== null) return false;
+        }
+      }
+    }
+  }
+  return true;
+}
+
+function _pcCellsDePW(pw) {
+  return Array.from({ length: pw.palavra.length }, (_, i) => ({
+    l: pw.dir === "H" ? pw.lin     : pw.lin + i,
+    c: pw.dir === "H" ? pw.col + i : pw.col
+  }));
+}
+
+function _pcLayoutFallback() {
+  return [
+    { id:1, palavra:"JESUS",   dica:"Filho de Deus",            dir:"H", lin:0, col:0 },
+    { id:2, palavra:"DEUS",    dica:"Criador de tudo",          dir:"V", lin:0, col:0 },
+    { id:3, palavra:"GRACA",   dica:"Favor imerecido",          dir:"H", lin:2, col:0 },
+    { id:4, palavra:"AMOR",    dica:"Sentimento divino",        dir:"H", lin:4, col:0 },
+    { id:5, palavra:"CRUZ",    dica:"Instrumento de redenção",  dir:"V", lin:0, col:4 },
+    { id:6, palavra:"FE",      dica:"Meio de salvação",         dir:"V", lin:0, col:2 },
+    { id:7, palavra:"PECADO",  dica:"Transgressão da Lei",      dir:"V", lin:2, col:2 }
+  ];
+}
+
+/* ------------------------------------------------------------------
+   CONSTRUÇÃO DA GRADE INTERNA
+------------------------------------------------------------------ */
+
+function _pcConstruirGrade(palavras) {
+  let maxL = 0, maxC = 0;
+  palavras.forEach(pw => {
+    _pcCellsDePW(pw).forEach(({ l, c }) => {
+      if (l > maxL) maxL = l;
+      if (c > maxC) maxC = c;
+    });
+  });
+  _pcLinhas  = maxL + 1;
+  _pcColunas = maxC + 1;
+
+  _pcGrade = Array.from({ length: _pcLinhas }, () =>
+    Array.from({ length: _pcColunas }, () => ({ letra: null, editavel: false, num: null }))
+  );
+
+  palavras.forEach(pw => {
+    _pcCellsDePW(pw).forEach(({ l, c }, i) => {
+      _pcGrade[l][c].letra    = pw.palavra[i];
+      _pcGrade[l][c].editavel = true;
+    });
+    if (!_pcGrade[pw.lin][pw.col].num) _pcGrade[pw.lin][pw.col].num = pw.id;
+  });
+
+  _pcRespostas = {};
+  for (let l = 0; l < _pcLinhas; l++) {
+    _pcRespostas[l] = {};
+    for (let c = 0; c < _pcColunas; c++) _pcRespostas[l][c] = "";
+  }
+}
+
+/* ------------------------------------------------------------------
+   ENTRADA DO JOGO
+------------------------------------------------------------------ */
+
 function jogoPalavrasCruzadas() {
-  _pcConstruirGrade();
+  _pcPalavrasGeradas = _pcGerarCruzadinha();
+  _pcConstruirGrade(_pcPalavrasGeradas);
   _pcAtiva        = null;
   _pcPalavraAtiva = null;
   _renderPC();
   iniciarTimer(180);
 }
 
-function _pcCelulasDaPalavra(pw) {
-  const cells = [];
-  for (let i = 0; i < pw.palavra.length; i++) {
-    cells.push({
-      l: pw.dir === "H" ? pw.lin : pw.lin + i,
-      c: pw.dir === "H" ? pw.col + i : pw.col
-    });
-  }
-  return cells;
-}
+function _pcCelulasDaPalavra(pw) { return _pcCellsDePW(pw); }
 
 function _pcPalavrasDaCelula(lin, col) {
-  return _PC_PALAVRAS.filter(pw =>
-    _pcCelulasDaPalavra(pw).some(cl => cl.l === lin && cl.c === col)
+  return _pcPalavrasGeradas.filter(pw =>
+    _pcCellsDePW(pw).some(cl => cl.l === lin && cl.c === col)
   );
 }
 
+/* ------------------------------------------------------------------
+   RENDER — tabela ocupa 100% da div pai
+------------------------------------------------------------------ */
+
 function _renderPC() {
-  const dicasH = _PC_PALAVRAS.filter(p => p.dir === "H")
+  const dicasH = _pcPalavrasGeradas.filter(p => p.dir === "H")
     .map(p => `<span><b>${p.id}→</b> ${p.dica}</span>`).join(" · ");
-  const dicasV = _PC_PALAVRAS.filter(p => p.dir === "V")
+  const dicasV = _pcPalavrasGeradas.filter(p => p.dir === "V")
     .map(p => `<span><b>${p.id}↓</b> ${p.dica}</span>`).join(" · ");
 
-  let gridHtml = `<table id="pc-table" style="border-collapse:collapse;margin:0 auto">`;
-  for (let l = 0; l < _PC_LINHAS; l++) {
-    gridHtml += "<tr>";
-    for (let c = 0; c < _PC_COLUNAS; c++) {
+  const rows = Array.from({ length: _pcLinhas }, (_, l) => {
+    const cells = Array.from({ length: _pcColunas }, (_, c) => {
       const cel = _pcGrade[l][c];
-      if (!cel.editavel) {
-        gridHtml += `<td style="background:#0f172a"></td>`;
-        continue;
-      }
+      if (!cel.editavel) return `<td class="pc-cell pc-cell-vazia"></td>`;
+
       const resp    = _pcRespostas[l][c] || "";
       const correta = cel.letra === resp;
       const isAtiva = _pcAtiva && _pcAtiva.l === l && _pcAtiva.c === c;
 
-      let bg = "#1e293b";
-      if (resp && correta)     bg = "#14532d";
-      else if (resp && !correta) bg = "#7f1d1d";
-      if (isAtiva)             bg = "#1e40af";
-
-      if (_pcPalavraAtiva && !isAtiva) {
-        const pw = _PC_PALAVRAS.find(p => p.id === _pcPalavraAtiva);
-        if (pw && _pcCelulasDaPalavra(pw).some(cl => cl.l === l && cl.c === c)) {
-          bg = "#1e3a5f";
-        }
+      let cls = "pc-cell pc-cell-edit";
+      if (isAtiva) {
+        cls += " pc-cell-ativa";
+      } else if (_pcPalavraAtiva) {
+        const pw = _pcPalavrasGeradas.find(p => p.id === _pcPalavraAtiva);
+        if (pw && _pcCellsDePW(pw).some(cl => cl.l === l && cl.c === c)) cls += " pc-cell-word";
       }
+      if (resp && correta)       cls += " pc-cell-certa";
+      else if (resp && !correta) cls += " pc-cell-errada";
 
-      const num = cel.num
-        ? `<span style="position:absolute;top:1px;left:1px;font-size:7px;color:#94a3b8;line-height:1">${cel.num}</span>`
-        : "";
-
-      gridHtml += `
-        <td onclick="pcClicarCelula(${l},${c})"
-            style="background:${bg};
-                   border:1px solid #334155;cursor:pointer;
-                   position:relative;text-align:center;
-                   font-weight:bold;color:white;user-select:none">
-          ${num}${resp}
-        </td>`;
-    }
-    gridHtml += "</tr>";
-  }
-  gridHtml += "</table>";
+      const num = cel.num ? `<span class="pc-num">${cel.num}</span>` : "";
+      return `<td class="${cls}" onclick="pcClicarCelula(${l},${c})">${num}${resp}</td>`;
+    }).join("");
+    return `<tr>${cells}</tr>`;
+  }).join("");
 
   const dicaAtual = _pcPalavraAtiva
     ? (() => {
-        const pw = _PC_PALAVRAS.find(p => p.id === _pcPalavraAtiva);
+        const pw = _pcPalavrasGeradas.find(p => p.id === _pcPalavraAtiva);
         return pw
           ? `<p class="text-center text-blue-300 text-xs mt-2 font-semibold">
-               ${pw.id}${pw.dir === "H" ? "→" : "↓"} ${pw.dica}
-             </p>`
+               ${pw.id}${pw.dir === "H" ? "→" : "↓"} ${pw.dica}</p>`
           : "";
       })()
     : `<p class="text-center text-slate-400 text-xs mt-2">Toque numa célula para começar</p>`;
 
   layout("Palavras Cruzadas", `
-    <div style="overflow-x:auto;-webkit-overflow-scrolling:touch">${gridHtml}</div>
+    <div class="pc-grid-wrap">
+      <table class="pc-table"><tbody>${rows}</tbody></table>
+    </div>
     ${dicaAtual}
     <details class="mt-2">
-      <summary class="text-xs text-slate-400 cursor-pointer">Ver dicas</summary>
-      <div class="text-xs text-slate-300 mt-1 space-y-1">
-        <p><b>Horizontal:</b> ${dicasH}</p>
-        <p><b>Vertical:</b> ${dicasV}</p>
+      <summary class="text-xs text-slate-400 cursor-pointer select-none">📋 Ver todas as dicas</summary>
+      <div class="text-xs text-slate-300 mt-2 leading-relaxed space-y-1">
+        <p><b>Horizontal →</b><br>${dicasH}</p>
+        <p><b>Vertical ↓</b><br>${dicasV}</p>
       </div>
     </details>
     <input id="pc-input" class="input mt-2"
-           maxlength="1"
-           placeholder="Digite uma letra..."
-           oninput="pcDigitar(event)"
-           onkeydown="pcNavegar(event)"
+           maxlength="1" placeholder="Digite uma letra..."
+           oninput="pcDigitar(event)" onkeydown="pcNavegar(event)"
            autocomplete="off" autocorrect="off" spellcheck="false"
            inputmode="text"
-           style="text-transform:uppercase;text-align:center">
+           style="text-transform:uppercase;text-align:center;letter-spacing:.15em">
     <button class="btn btn-success mt-2" onclick="pcVerificar()">✔ Verificar</button>
   `);
 
@@ -1224,7 +1371,6 @@ function pcClicarCelula(lin, col) {
   if (!cel.editavel) return;
   const pws = _pcPalavrasDaCelula(lin, col);
   if (!pws.length) return;
-
   if (_pcAtiva && _pcAtiva.l === lin && _pcAtiva.c === col && pws.length > 1) {
     const idx = pws.findIndex(p => p.id === _pcPalavraAtiva);
     _pcPalavraAtiva = pws[(idx + 1) % pws.length].id;
@@ -1248,29 +1394,26 @@ function pcNavegar(e) {
   if (!_pcAtiva) return;
   if (e.key === "Backspace") {
     e.preventDefault();
-    if (_pcRespostas[_pcAtiva.l][_pcAtiva.c]) {
-      _pcRespostas[_pcAtiva.l][_pcAtiva.c] = "";
-    } else {
-      _pcRecuarCursor();
-    }
+    if (_pcRespostas[_pcAtiva.l][_pcAtiva.c]) _pcRespostas[_pcAtiva.l][_pcAtiva.c] = "";
+    else _pcRecuarCursor();
     _renderPC();
   }
 }
 
 function _pcAvancarCursor() {
   if (!_pcPalavraAtiva || !_pcAtiva) return;
-  const pw    = _PC_PALAVRAS.find(p => p.id === _pcPalavraAtiva);
+  const pw    = _pcPalavrasGeradas.find(p => p.id === _pcPalavraAtiva);
   if (!pw) return;
-  const cells = _pcCelulasDaPalavra(pw);
+  const cells = _pcCellsDePW(pw);
   const idx   = cells.findIndex(cl => cl.l === _pcAtiva.l && cl.c === _pcAtiva.c);
   if (idx < cells.length - 1) _pcAtiva = cells[idx + 1];
 }
 
 function _pcRecuarCursor() {
   if (!_pcPalavraAtiva || !_pcAtiva) return;
-  const pw    = _PC_PALAVRAS.find(p => p.id === _pcPalavraAtiva);
+  const pw    = _pcPalavrasGeradas.find(p => p.id === _pcPalavraAtiva);
   if (!pw) return;
-  const cells = _pcCelulasDaPalavra(pw);
+  const cells = _pcCellsDePW(pw);
   const idx   = cells.findIndex(cl => cl.l === _pcAtiva.l && cl.c === _pcAtiva.c);
   if (idx > 0) _pcAtiva = cells[idx - 1];
 }
@@ -1278,12 +1421,11 @@ function _pcRecuarCursor() {
 function pcVerificar() {
   if (estado.respondido) return;
   let corretas = 0;
-  _PC_PALAVRAS.forEach(pw => {
-    const cells = _pcCelulasDaPalavra(pw);
-    const ok    = cells.every(cl => _pcRespostas[cl.l][cl.c] === _pcGrade[cl.l][cl.c].letra);
-    if (ok) corretas++;
+  _pcPalavrasGeradas.forEach(pw => {
+    const cells = _pcCellsDePW(pw);
+    if (cells.every(cl => _pcRespostas[cl.l][cl.c] === _pcGrade[cl.l][cl.c].letra)) corretas++;
   });
-  const total = _PC_PALAVRAS.length;
+  const total = _pcPalavrasGeradas.length;
   if (corretas === total) {
     acertar();
   } else if (corretas >= Math.ceil(total * 0.6)) {
